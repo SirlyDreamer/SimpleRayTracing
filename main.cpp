@@ -2,23 +2,73 @@
 #include <vector>
 #include <cstdio>
 
+void initSphere(std::vector<Sphere> &sp) {
+  Vector Cen(50, 40.8, -860);
+  sp.emplace_back(1600,
+                  Vector(1, 0, 2) * 3000,
+                  Vector(1, .9, .8) * 1.2e1 * 1.56 * 2,
+                  Vector(),
+                  DIFFuse);
+  sp.emplace_back(1560,
+                  Vector(1, 0, 2) * 3500,
+                  Vector(1, .5, .05) * 4.8e1 * 1.56 * 2,
+                  Vector(),
+                  DIFFuse);
+  sp.emplace_back(10000,
+                  Cen + Vector(0, 0, -200),
+                  Vector(0.0627, 0.188, 0.569) * 6e-2 * 8,
+                  Vector(.7, .7, 1) * .25,
+                  DIFFuse);
+  sp.emplace_back(10000,
+                  Cen + Vector(0, 0, -200),
+                  Vector(0.00063842, 0.02001478, 0.28923243) * 6e-2 * 8,
+                  Vector(.7, .7, 1) * .25,
+                  DIFFuse);
+  sp.emplace_back(100000,
+                  Vector(50, -100000, 0),
+                  Vector(),
+                  Vector(.3, .3, .3),
+                  DIFFuse);
+  sp.emplace_back(110000,
+                  Vector(50, -110048.5, 0),
+                  Vector(.9, .5, .05) * 4,
+                  Vector(),
+                  DIFFuse);
+  sp.emplace_back(4e4,
+                  Vector(50, -4e4 - 30, -3000),
+                  Vector(),
+                  Vector(.2, .2, .2),
+                  DIFFuse);
+  sp.emplace_back(3.99e4,
+                  Vector(50, -3.99e4 + 20.045, -3000),
+                  Vector(),
+                  Vector(.7, .7, .7),
+                  DIFFuse);
+  sp.emplace_back(26.5,
+                  Vector(22, 26.5, 42),
+                  Vector(),
+                  Vector(1, 1, 1) * .596,
+                  SPECular);
+  sp.emplace_back(13,
+                  Vector(75, 13, 82),
+                  Vector(),
+                  Vector(.96, .96, .96) * .96,
+                  REFRactive);
+  sp.emplace_back(22,
+                  Vector(87, 22, 24),
+                  Vector(),
+                  Vector(.6, .6, .6) * .696,
+                  REFRactive);
+}
+
 int32_t main() {
   std::mt19937_64 mt_rand(std::chrono::system_clock::now().time_since_epoch().count());
   std::uniform_real_distribution<long double> urd(0, 1);
 
-  std::vector<Sphere> spheres(9);
+  std::vector<Sphere> spheres;
+  initSphere(spheres);
 
-  spheres[0] = Sphere(1e5, Vector(1e5 + 1, 40.8, 81.6), Vector(), Vector(.75, .25, .25), DIFFuse);//Left
-  spheres[1] = Sphere(1e5, Vector(-1e5 + 99, 40.8, 81.6), Vector(), Vector(.25, .25, .75), DIFFuse);//Right
-  spheres[2] = Sphere(1e5, Vector(50, 40.8, 1e5), Vector(), Vector(.75, .75, .75), DIFFuse);//Back
-  spheres[3] = Sphere(1e5, Vector(50, 40.8, -1e5 + 170), Vector(), Vector(), DIFFuse);//Front
-  spheres[4] = Sphere(1e5, Vector(50, 1e5, 81.6), Vector(), Vector(.75, .75, .75), DIFFuse);//Bottom
-  spheres[5] = Sphere(1e5, Vector(50, -1e5 + 81.6, 81.6), Vector(), Vector(.75, .75, .75), DIFFuse);//Top
-  spheres[6] = Sphere(16.5, Vector(27, 16.5, 47), Vector(), Vector(0.99, 0.99, 0.99), SPECular);//Mirror
-  spheres[7] = Sphere(16.5, Vector(73, 16.5, 78), Vector(), Vector(0.99, 0.99, 0.99), REFRactive);//Glass
-  spheres[8] = Sphere(600, Vector(50, 681.6 - .27, 81.6), Vector(12, 12, 12), Vector(), DIFFuse);//Light
-
-  size_t w = 1024, h = 768, samps = 5000 / 4;
+  size_t w = 1920, h = 1080, samps = 25000 / 4;
   Vector cam_o(50, 52, 295.6);
   Vector cam_d(Vector(0, -0.042612, -1).norm());
   Ray cam(cam_o, cam_d);

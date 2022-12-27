@@ -11,19 +11,19 @@ class Vector {
   Vector(long double x, long double y, long double z) : x_(x), y_(y), z_(z) {}
 
   Vector operator+(const Vector &e) const {
-    return Vector(x_ + e.x_, y_ + e.y_, z_ + e.z_);
+    return {x_ + e.x_, y_ + e.y_, z_ + e.z_};
   }
 
   Vector operator-(const Vector &e) const {
-    return Vector(x_ - e.x_, y_ - e.y_, z_ - e.z_);
+    return {x_ - e.x_, y_ - e.y_, z_ - e.z_};
   }
 
   Vector operator*(long double lambda) const {
-    return Vector(x_ * lambda, y_ * lambda, z_ * lambda);
+    return {x_ * lambda, y_ * lambda, z_ * lambda};
   }
 
   Vector operator*(const Vector &e) const {
-    return Vector(x_ * e.x_, y_ * e.y_, z_ * e.z_);
+    return {x_ * e.x_, y_ * e.y_, z_ * e.z_};
   }
 
   Vector &norm() {
@@ -35,7 +35,7 @@ class Vector {
   }
 
   Vector operator%(const Vector &e) const {
-    return Vector(y_ * e.z_ - z_ * e.y_, z_ * e.x_ - x_ * e.z_, x_ * e.y_ - y_ * e.x_);
+    return {y_ * e.z_ - z_ * e.y_, z_ * e.x_ - x_ * e.z_, x_ * e.y_ - y_ * e.x_};
   }
 
   long double x_, y_, z_;
@@ -59,27 +59,29 @@ class Sphere {
   Sphere(long double r, Vector o, Vector dir, Vector color, refl_t refl) :
       r_(r), o_(o), dir_(dir), color_(color), refl_(refl) {}
 
-  long double intersect(const Ray &ray) const {
-    // d·d * t^2 + 2*(o-p)·d * t + (o-p)·(o-p)-R^2 = 0
-    Vector o_p = o_ - ray.o_;
-    long double b = o_p.dot(ray.dir_);
-    long double delta = b * b - o_p.dot(o_p) + r_ * r_;
-    if (delta < 0)
-      return 0;
-    delta = sqrtl(delta);
-    long double t1 = b - delta, t2 = b + delta;
-    if (t1 > eps)
-      return t1;
-    if (t2 > eps)
-      return t2;
-    return 0;
-  }
+  long double intersect(const Ray &ray) const;
 
   static constexpr long double eps = 1e-4;
   long double r_;
   Vector o_, dir_, color_;
   refl_t refl_;
 };
+
+long double Sphere::intersect(const Ray &ray) const {
+  // d·d * t^2 + 2*(o-p)·d * t + (o-p)·(o-p)-R^2 = 0
+  Vector o_p = o_ - ray.o_;
+  long double b = o_p.dot(ray.dir_);
+  long double delta = b * b - o_p.dot(o_p) + r_ * r_;
+  if (delta < 0)
+    return {};
+  delta = sqrtl(delta);
+  long double t1 = b - delta, t2 = b + delta;
+  if (t1 > eps)
+    return t1;
+  if (t2 > eps)
+    return t2;
+  return {};
+}
 
 inline long double clamp(long double x) {
   if (x < 0)
@@ -90,13 +92,13 @@ inline long double clamp(long double x) {
 }
 
 inline int32_t toInt(long double x) {
-  return powl(clamp(x), 1 / 2.2) * 255 + 0.5;
+  return lround(pow(clamp(x), 1 / 2.2L) * 255);
 }
 
 inline bool intersect(const std::vector<Sphere> &s, const Ray &r, long double &t, size_t &id) {
-  constexpr long double inf = 1e20, eps = 1e-5;
+  constexpr long double inf = 1e20;
   t = inf;
-  for (int i(s.size() - 1); i >= 0; --i) {
+  for (int i((int) s.size() - 1); i >= 0; --i) {
     long double d = s[i].intersect(r);
     if (d != 0 && d < t) {
       t = d;
@@ -112,9 +114,8 @@ Vector trace(const std::vector<Sphere> &s, const Ray &r, int depth) {
   long double t;
   size_t id(0);
 
-  if (!intersect(s, r, t, id)) {
-    return Vector{};
-  }
+  if (!intersect(s, r, t, id))
+    return {};
 
   const Sphere &obj = s[id];
   Vector x = r.o_ + r.dir_ * t;
@@ -172,4 +173,5 @@ Vector trace(const std::vector<Sphere> &s, const Ray &r, int depth) {
       return obj.dir_ + f * trace(s, outRay, depth + 1) * TP;
     }
   }
+  return {};
 }

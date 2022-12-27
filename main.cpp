@@ -29,23 +29,21 @@ int32_t main() {
   std::vector<Vector> c(w * h);
 
 #pragma omp parallel for schedule(dynamic, 1) private(r)
-  {
-    for (size_t y(0); y < h; y++) {
-      printf("\rRendering (%lu spp) %5.2Lf%%...", samps * 4, 100.0L * y / (h - 1));
-      for (size_t x = 0; x < w; x++)
-        for (size_t sy = 0, i = (h - y - 1) * w + x; sy < 2; sy++)
-          for (size_t sx = 0; sx < 2; sx++, r = Vector()) {
-            for (size_t s = 0; s < samps; s++) {
-              long double r1 = 2 * urd(mt_rand), dx = r1 < 1 ? sqrtl(r1) - 1 : 1 - sqrtl(2 - r1);
-              long double r2 = 2 * urd(mt_rand), dy = r2 < 1 ? sqrtl(r2) - 1 : 1 - sqrtl(2 - r2);
-              Vector d = cam.dir_ + \
+  for (size_t y = 0; y < h; y++) {
+    printf("\rRendering (%lu spp) %5.2Lf%%...", samps * 4, 100.0L * y / (h - 1));
+    for (size_t x = 0; x < w; x++)
+      for (size_t sy = 0, i = (h - y - 1) * w + x; sy < 2; sy++)
+        for (size_t sx = 0; sx < 2; sx++, r = Vector()) {
+          for (size_t s = 0; s < samps; s++) {
+            long double r1 = 2 * urd(mt_rand), dx = r1 < 1 ? sqrtl(r1) - 1 : 1 - sqrtl(2 - r1);
+            long double r2 = 2 * urd(mt_rand), dy = r2 < 1 ? sqrtl(r2) - 1 : 1 - sqrtl(2 - r2);
+            Vector d = cam.dir_ + \
                   cx * (((sx + 0.5L + dx) / 2 + x) / w - 0.5L) + \
                   cy * (((sy + 0.5L + dy) / 2 + y) / h - 0.5L);
-              r = r + trace(spheres, Ray(cam.o_ + d * 140, d.norm()), 0) * (1.0L / samps);
-            }
-            c[i] = c[i] + Vector(clamp(r.x_), clamp(r.y_), clamp(r.z_)) * 0.25L;
+            r = r + trace(spheres, Ray(cam.o_ + d * 140, d.norm()), 0) * (1.0L / samps);
           }
-    }
+          c[i] = c[i] + Vector(clamp(r.x_), clamp(r.y_), clamp(r.z_)) * 0.25L;
+        }
   }
 
   printf("Writing Image...\n");

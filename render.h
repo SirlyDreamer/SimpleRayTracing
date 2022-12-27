@@ -75,7 +75,7 @@ class Sphere {
     return 0;
   }
 
-  static constexpr long double eps = 1e-5;
+  static constexpr long double eps = 1e-4;
   long double r_;
   Vector o_, dir_, color_;
   refl_t refl_;
@@ -90,15 +90,15 @@ inline long double clamp(long double x) {
 }
 
 inline int32_t toInt(long double x) {
-  return pow(clamp(x), 1 / 2.2) * 255 + 0.5;
+  return powl(clamp(x), 1 / 2.2) * 255 + 0.5;
 }
 
-inline bool intersect(std::vector<Sphere> &s, const Ray &r, long double &t, size_t &id) {
-  constexpr long double inf = 1e18, eps = 1e-5;
+inline bool intersect(const std::vector<Sphere> &s, const Ray &r, long double &t, size_t &id) {
+  constexpr long double inf = 1e20, eps = 1e-5;
   t = inf;
-  for (size_t i(0); i < s.size(); ++i) {
+  for (int i(s.size() - 1); i >= 0; --i) {
     long double d = s[i].intersect(r);
-    if (eps < d && d < t) {
+    if (d != 0 && d < t) {
       t = d;
       id = i;
     }
@@ -106,7 +106,7 @@ inline bool intersect(std::vector<Sphere> &s, const Ray &r, long double &t, size
   return t < inf;
 }
 
-Vector trace(std::vector<Sphere> &s, const Ray &r, int depth) {
+Vector trace(const std::vector<Sphere> &s, const Ray &r, int depth) {
   std::mt19937_64 mt_rand(std::chrono::system_clock::now().time_since_epoch().count());
   std::uniform_real_distribution<long double> urd(0, 1);
   long double t;
@@ -124,7 +124,7 @@ Vector trace(std::vector<Sphere> &s, const Ray &r, int depth) {
 
   long double p = std::max({f.x_, f.y_, f.z_});
 
-  if (depth > 5) {
+  if (depth > 4) {
     if (urd(mt_rand) < p)
       f = f * (1 / p);
     else
@@ -160,17 +160,15 @@ Vector trace(std::vector<Sphere> &s, const Ray &r, int depth) {
       Ray outRay(x, tdir);
       long double a = nt - nc, b = nt + nc, R0 = a * a / (b * b);
       long double c = 1 - (into ? -ddn : tdir.dot(n));
-      long double Re = R0 + (1 - R0 * c * c * c * c * c);
+      long double Re = R0 + (1 - R0) * c * c * c * c * c;
       long double Tr = 1 - Re;
       long double P = 0.25 + 0.5 * Re;
       long double RP = Re / p;
       long double TP = Tr / (1 - P);
-      if (depth <= 1) {
+      if (depth <= 1)
         return obj.dir_ + f * (trace(s, reflRay, depth + 1) * Re + trace(s, outRay, depth + 1) * Tr);
-      }
-      if (urd(mt_rand) < P) {
+      if (urd(mt_rand) < P)
         return obj.dir_ + f * trace(s, reflRay, depth + 1) * RP;
-      }
       return obj.dir_ + f * trace(s, outRay, depth + 1) * TP;
     }
   }

@@ -1,8 +1,10 @@
 #include "render.h"
-#include <vector>
 #include <cstdio>
+#include <string>
+#include <vector>
 
 void initSphere(std::vector<Sphere> &sp) {
+  //Scene: radius, position, emission, color, material
   Vector Cen(50, 40.8, -860);
   sp.emplace_back(1600,
                   Vector(1, 0, 2) * 3000,
@@ -61,14 +63,15 @@ void initSphere(std::vector<Sphere> &sp) {
                   REFRactive);
 }
 
-int32_t main() {
+int32_t main(int argc, char *argv[]) {
   std::mt19937_64 mt_rand(std::chrono::system_clock::now().time_since_epoch().count());
   std::uniform_real_distribution<long double> urd(0, 1);
 
   std::vector<Sphere> spheres;
   initSphere(spheres);
 
-  size_t w = 1920, h = 1080, samps = 25000 / 4;
+  size_t w = 1920, h = 1080;
+  size_t samps = (argc == 2) ? std::stoull(std::string(argv[1])) / 4 : 5000 / 4;
   Vector cam_o(50, 52, 295.6);
   Vector cam_d(Vector(0, -0.042612, -1).norm());
   Ray cam(cam_o, cam_d);
